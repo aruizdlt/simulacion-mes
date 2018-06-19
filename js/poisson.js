@@ -11,6 +11,8 @@ function verValores() {
   insertarGraficoTCL(tcl);
   var varianza2 = varianza(tcl, "varianza2");
   var media2 = media(tcl, "media2");
+  var prob = document.getElementById("prob");
+  prob.classList.remove("d-none");
   return true;
 }
 
@@ -76,4 +78,29 @@ function varianza(array, id) {
   var varianza = arr.variance(array);
   document.getElementById(id).innerHTML = "S<sup>2</sup>= " + varianza.toFixed(2);
   return varianza;
+}
+
+function probIntervalo(valor) {
+  var a = document.getElementById('a').value;
+  if (a === "") return false;
+  var b = document.getElementById('b').value;
+  if (b === "") return false;
+  var pIntervalo = calcularProbIntervalMuestra(a, b, valor);
+  var pReal = calcularProbIntervaloReal(a, b, valor);
+  var error = calcularError(pIntervalo, pReal);
+  return true;
+}
+
+function calcularProbIntervalMuestra(a, b, valor) {
+  document.getElementById('probmuestra').innerHTML = a;
+  return a;
+}
+
+function calcularProbIntervaloReal(a, b, valor) {
+  document.getElementById('probreal').innerHTML = b;
+  return b;
+}
+
+function calcularError(pIntervalo, pReal) {
+  document.getElementById('error').innerHTML = pIntervalo - pReal;
 }
