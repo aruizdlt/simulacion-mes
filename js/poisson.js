@@ -1,9 +1,12 @@
+var muestra = [];
+var lambda;
+var n;
 function verValores() {
-  var n = document.getElementById('n').value;
+  n = document.getElementById('n').value;
   if (n === "") return false;
-  var lambda = document.getElementById('lambda').value;
+  lambda = document.getElementById('lambda').value;
   if (lambda === "") return false;
-  var muestra = calcularPoisson(n, lambda);
+  muestra = calcularPoisson(n, lambda);
   insertarGraficoFrecuencias(muestra);
   var varianza1 = varianza(muestra, "varianza1");
   var media1 = media(muestra, "media1");
@@ -25,13 +28,19 @@ function calcularTCL(muestra, varianza, media) {
 }
 
 function insertarGraficoTCL(tcl) {
+  var muestra = foo(tcl);
   var header = document.getElementById("h1_tcl");
   header.classList.remove("d-none");
   var trace = {
     x: tcl,
     type: 'histogram',
   };
-  var data = [trace];
+  var trace1 = {
+    x: muestra[0],
+    y: muestra[1],
+    type: 'line'
+  };
+  var data = [trace, trace1];
   Plotly.newPlot('tcl', data);
 }
 
@@ -83,24 +92,134 @@ function varianza(array, id) {
 function probIntervalo(valor) {
   var a = document.getElementById('a').value;
   if (a === "") return false;
+  console.log(parseInt(a));
   var b = document.getElementById('b').value;
   if (b === "") return false;
-  var pIntervalo = calcularProbIntervalMuestra(a, b, valor);
-  var pReal = calcularProbIntervaloReal(a, b, valor);
+  console.log(parseInt(b));
+  if (b < a) {
+    document.getElementById('error').innerHTML = "Intervalo incorrecto";
+    return true;
+  }
+  var pIntervalo = calcularProbIntervalMuestra(parseInt(a), parseInt(b), valor);
+  var pReal = calcularProbIntervaloReal(parseInt(a), parseInt(b), valor);
   var error = calcularError(pIntervalo, pReal);
   return true;
 }
 
+function foo(array) {
+  var a = [], b = [], prev;
+
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] !== prev) {
+      a.push(array[i]);
+      b.push(1);
+    } else {
+      b[b.length - 1]++;
+    }
+    prev = array[i];
+  }
+  console.log(a);
+  console.log(b);
+  return [a, b];
+}
+
 function calcularProbIntervalMuestra(a, b, valor) {
-  document.getElementById('probmuestra').innerHTML = a;
-  return a;
+  var frecuencias = foo(muestra);
+  switch (valor) {
+    case 1:
+      // intervalo (a,b)
+      var prob = calcularProbMuestra(a + 1, b - 1, frecuencias);
+      document.getElementById('probmuestra').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
+      return prob;
+    case 2:
+      // intervalo [a,b)
+      var prob = calcularProbMuestra(a, b - 1, frecuencias);
+      document.getElementById('probmuestra').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
+      return prob;
+    case 3:
+      // intervalo (a,b]
+      var prob = calcularProbMuestra(a + 1, b, frecuencias);
+      document.getElementById('probmuestra').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
+      return prob;
+    case 4:
+      // intervalo [a,b]
+      var prob = calcularProbMuestra(a, b, frecuencias);
+      document.getElementById('probmuestra').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
+      return prob;
+  }
 }
 
 function calcularProbIntervaloReal(a, b, valor) {
-  document.getElementById('probreal').innerHTML = b;
-  return b;
+  switch (valor) {
+    case 1:
+      // intervalo (a,b)
+      var prob = calcularProbReal(a + 1, b - 1);
+      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      return prob;
+    case 2:
+      // intervalo [a,b)
+      var prob = calcularProbReal(a, b - 1);
+      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      return prob;
+    case 3:
+      // intervalo (a,b]
+      var prob = calcularProbReal(a + 1, b);
+      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      return prob;
+    case 4:
+      // intervalo [a,b]
+      var prob = calcularProbReal(a, b);
+      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      return prob;
+  }
+}
+
+function calcularProbReal(a, b) {
+  var probabilidad = 0;
+  for (var i = parseInt(a); i <= parseInt(b); i++) {
+    var poisson = (Math.exp(-(n * i)) * Math.pow((n * i), i) / fact(i));
+    console.log('Poisson ' + i + ' :' + poisson);
+    probabilidad += poisson;
+    console.log('Probabilidad Real ' + i + ':' + probabilidad);
+  }
+  console.log('Probabilidad Real:' + probabilidad);
+  return probabilidad;
+}
+
+function fact(num) {
+  var rval = 1;
+  for (var i = 2; i <= num; i++)
+    rval = rval * i;
+  return rval;
 }
 
 function calcularError(pIntervalo, pReal) {
-  document.getElementById('error').innerHTML = pIntervalo - pReal;
+  document.getElementById('error').innerHTML = "Error cometido: " + (Math.abs(pIntervalo - pReal).toFixed(4) * 100) + "%";
+}
+
+function calcularProbMuestra(a, b, frecuencias) {
+  var probabilidad = 0;
+  var frec0 = frecuencias[0];
+  var frec1 = frecuencias[1];
+  var indexa = frec0.indexOf(a);
+  console.log('Indice A: ' + indexa);
+  var indexb = frec0.indexOf(b);
+  console.log('Indice B: ' + indexb);
+
+  if (indexa == indexb) {
+    return frec1[indexa] / muestra.length;
+  }
+
+  for (var i = indexa; i <= indexb; i++) {
+    probabilidad += frec1[i];
+    console.log('Suma Frecuencias: ' + probabilidad);
+  }
+  return probabilidad / muestra.length;
+}
+
+// Standard Normal variate using Box-Muller transform.
+function randn_bm() {
+  var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
+  var v = 1 - Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
