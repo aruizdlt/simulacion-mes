@@ -28,20 +28,23 @@ function calcularTCL(muestra, varianza, media) {
 }
 
 function insertarGraficoTCL(tcl) {
-  var muestra = foo(tcl);
+  var muestraN = foo(tcl.sort((a, b) => a - b));
+  console.log('Muestra N[0]: ' + muestraN[0]);
+  console.log('Muestra N[1]: ' + muestraN[1]);
   var header = document.getElementById("h1_tcl");
   header.classList.remove("d-none");
-  var trace = {
+  var histograma = {
     x: tcl,
-    type: 'histogram',
+    type: 'histogram'
   };
-  var trace1 = {
-    x: muestra[0],
-    y: muestra[1],
+  var normal = {
+    x: muestraN[0],
+    y: muestraN[1],
     type: 'line'
   };
-  var data = [trace, trace1];
-  Plotly.newPlot('tcl', data);
+  var layout = { showlegend: false };
+  var data = [histograma, normal];
+  Plotly.newPlot('tcl', data, layout);
 }
 
 function calcularValorPoisson(lambda) {
@@ -176,21 +179,22 @@ function calcularProbIntervaloReal(a, b, valor) {
 
 function calcularProbReal(a, b) {
   var probabilidad = 0;
-  for (var i = parseInt(a); i <= parseInt(b); i++) {
-    var poisson = (Math.exp(-(n * i)) * Math.pow((n * i), i) / fact(i));
+  for (var i = a; i <= b; i++) {
+    var poisson = ((Math.pow(Math.E, -i) * Math.pow(i, lambda))) / fact(lambda);
     console.log('Poisson ' + i + ' :' + poisson);
     probabilidad += poisson;
     console.log('Probabilidad Real ' + i + ':' + probabilidad);
   }
-  console.log('Probabilidad Real:' + probabilidad);
+  console.log('Probabilidad Final:' + probabilidad);
   return probabilidad;
 }
 
 function fact(num) {
-  var rval = 1;
-  for (var i = 2; i <= num; i++)
-    rval = rval * i;
-  return rval;
+  var total = 1;
+  for (i = 1; i <= num; i++) {
+    total = total * i;
+  }
+  return total;
 }
 
 function calcularError(pIntervalo, pReal) {
@@ -215,11 +219,4 @@ function calcularProbMuestra(a, b, frecuencias) {
     console.log('Suma Frecuencias: ' + probabilidad);
   }
   return probabilidad / muestra.length;
-}
-
-// Standard Normal variate using Box-Muller transform.
-function randn_bm() {
-  var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
-  var v = 1 - Math.random();
-  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
