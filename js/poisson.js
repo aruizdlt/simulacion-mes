@@ -1,6 +1,46 @@
 var muestra = [];
 var lambda;
 var n;
+var p;
+var tam;
+
+function verBinomial() {
+  tam = document.getElementById('tam').value;
+  if (tam === "") return false;
+  n = document.getElementById('n').value;
+  if (n === "") return false;
+  p = document.getElementById('p').value;
+  if (p === "") return false;
+  console.log('TAM: ' + tam);
+  console.log('N: ' + n);
+  console.log('P: ' + p);
+  muestra = calcularBinomial(tam, n, p);
+  console.log(muestra);
+  insertarGraficoFrecuencias(muestra);
+  var varianza1 = varianza(muestra, "varianza1");
+  var media1 = media(muestra, "media1");
+  var tcl = calcularTCL(muestra, varianza1, media1);
+  insertarGraficoTCL(tcl);
+  var varianza2 = varianza(tcl, "varianza2");
+  var media2 = media(tcl, "media2");
+  var prob = document.getElementById("prob");
+  prob.classList.remove("d-none");
+  return true;
+}
+
+function calcularBinomial(tam, n, p) {
+  var array = [];
+  for (var j = 0; j < tam; j++) {
+    var x = 0;
+    for (var i = 0; i < n; i++) {
+      if (Math.random() < p)
+        x++;
+    }
+    array.push(x);
+  }
+  return array;
+}
+
 function verValores() {
   n = document.getElementById('n').value;
   if (n === "") return false;
