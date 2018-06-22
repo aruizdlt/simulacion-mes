@@ -38,6 +38,7 @@ function calcularBinomial(tam, n, p) {
     }
     array.push(x);
   }
+  array.sort((a, b) => a - b);
   return array;
 }
 
@@ -132,7 +133,7 @@ function varianza(array, id) {
   return varianza;
 }
 
-function probIntervalo(valor) {
+function probIntervalo(valor, tipo) {
   var a = document.getElementById('a').value;
   if (a === "") return false;
   console.log(parseInt(a));
@@ -144,7 +145,7 @@ function probIntervalo(valor) {
     return true;
   }
   var pIntervalo = calcularProbIntervalMuestra(parseInt(a), parseInt(b), valor);
-  var pReal = calcularProbIntervaloReal(parseInt(a), parseInt(b), valor);
+  var pReal = calcularProbIntervaloReal(parseInt(a), parseInt(b), valor, tipo);
   var error = calcularError(pIntervalo, pReal);
   return true;
 }
@@ -192,32 +193,37 @@ function calcularProbIntervalMuestra(a, b, valor) {
   }
 }
 
-function calcularProbIntervaloReal(a, b, valor) {
+function calcularProbIntervaloReal(a, b, valor, tipo) {
+  var prob;
   switch (valor) {
     case 1:
-      // intervalo (a,b)
-      var prob = calcularProbReal(a + 1, b - 1);
-      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      // intervalo (a,b)      
+      if (tipo == 1) prob = calcularProbRealPoisson(a + 1, b - 1);
+      else prob = calcularProbRealBinomial(a + 1, b - 1, frecuencias);
+      document.getElementById('probreal').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
       return prob;
     case 2:
       // intervalo [a,b)
-      var prob = calcularProbReal(a, b - 1);
-      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      if (tipo == 1) prob = calcularProbRealPoisson(a, b - 1);
+      else prob = calcularProbRealBinomial(a, b - 1);
+      document.getElementById('probreal').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
       return prob;
     case 3:
       // intervalo (a,b]
-      var prob = calcularProbReal(a + 1, b);
-      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      if (tipo == 1) prob = calcularProbRealPoisson(a + 1, b);
+      else prob = calcularProbRealBinomial(a + 1, b);
+      document.getElementById('probreal').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
       return prob;
     case 4:
       // intervalo [a,b]
-      var prob = calcularProbReal(a, b);
-      document.getElementById('probreal').innerHTML = "Probabilidad Poisson: " + prob.toFixed(8) * 100 + "%";
+      if (tipo == 1) prob = calcularProbRealPoisson(a, b);
+      else prob = calcularProbRealBinomial(a, b);
+      document.getElementById('probreal').innerHTML = "Probabilidad en la muestra: " + prob.toFixed(4) * 100 + "%";
       return prob;
   }
 }
 
-function calcularProbReal(a, b) {
+function calcularProbRealPoisson(a, b) {
   var probabilidad = 0;
   for (var i = a; i <= b; i++) {
     var poisson = ((Math.pow(Math.E, -i) * Math.pow(i, lambda))) / fact(lambda);
@@ -244,7 +250,9 @@ function calcularError(pIntervalo, pReal) {
 function calcularProbMuestra(a, b, frecuencias) {
   var probabilidad = 0;
   var frec0 = frecuencias[0];
+  console.log('Frecuencias 0: ' + frec0);
   var frec1 = frecuencias[1];
+  console.log('Frecuencias 0: ' + frec1);
   var indexa = frec0.indexOf(a);
   console.log('Indice A: ' + indexa);
   var indexb = frec0.indexOf(b);
@@ -259,4 +267,24 @@ function calcularProbMuestra(a, b, frecuencias) {
     console.log('Suma Frecuencias: ' + probabilidad);
   }
   return probabilidad / muestra.length;
+}
+
+function calcularProbRealBinomial(a, b) {
+  var probabilidad = 0;
+  for (var i = a; i <= b; i++) {
+    var combinatorio = numCombinatorio(n, i);
+    var binomial = combinatorio * Math.pow(p, i) * Math.pow((1 - p), (n - i));
+    console.log('Binomial ' + i + ' :' + binomial);
+    probabilidad += binomial;
+    console.log('Probabilidad Real ' + i + ':' + probabilidad);
+  }
+  console.log('Probabilidad Final:' + probabilidad);
+  return probabilidad;
+}
+
+function numCombinatorio(n, k) {
+  var coeff = 1;
+  for (var x = n - k + 1; x <= n; x++) coeff *= x;
+  for (x = 1; x <= k; x++) coeff /= x;
+  return coeff;
 }
