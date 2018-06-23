@@ -3,6 +3,10 @@ var lambda;
 var n;
 var p;
 var tam;
+var media1;
+var varianza1;
+var media2;
+var varianza2;
 
 function verBinomial() {
   tam = document.getElementById('tam').value;
@@ -17,12 +21,12 @@ function verBinomial() {
   muestra = calcularBinomial(tam, n, p);
   console.log(muestra);
   insertarGraficoFrecuencias(muestra);
-  var varianza1 = varianza(muestra, "varianza1");
-  var media1 = media(muestra, "media1");
+  varianza1 = varianza(muestra, "varianza1");
+  media1 = media(muestra, "media1");
   var tcl = calcularTCL(muestra, varianza1, media1);
   insertarGraficoTCL(tcl);
-  var varianza2 = varianza(tcl, "varianza2");
-  var media2 = media(tcl, "media2");
+  varianza2 = varianza(tcl, "varianza2");
+  media2 = media(tcl, "media2");
   var prob = document.getElementById("prob");
   prob.classList.remove("d-none");
   return true;
@@ -42,22 +46,44 @@ function calcularBinomial(tam, n, p) {
   return array;
 }
 
-function verValores() {
+function verPoisson() {
   n = document.getElementById('n').value;
   if (n === "") return false;
   lambda = document.getElementById('lambda').value;
   if (lambda === "") return false;
   muestra = calcularPoisson(n, lambda);
   insertarGraficoFrecuencias(muestra);
-  var varianza1 = varianza(muestra, "varianza1");
-  var media1 = media(muestra, "media1");
+  varianza1 = varianza(muestra, "varianza1");
+  media1 = media(muestra, "media1");
   var tcl = calcularTCL(muestra, varianza1, media1);
   insertarGraficoTCL(tcl);
-  var varianza2 = varianza(tcl, "varianza2");
-  var media2 = media(tcl, "media2");
+  varianza2 = varianza(tcl, "varianza2");
+  media2 = media(tcl, "media2");
   var prob = document.getElementById("prob");
   prob.classList.remove("d-none");
   return true;
+}
+
+function calcularPoisson(n, lambda) {
+  var muestra = [];
+  for (i = 0; i <= n; i++) {
+    muestra.push(calcularValorPoisson(lambda));
+  }
+  muestra.sort((a, b) => a - b);
+  return muestra;
+}
+
+function calcularValorPoisson(lambda) {
+  var L = Math.exp(-lambda);
+  var p = 1.0;
+  var k = 0;
+
+  do {
+    k++;
+    p *= Math.random();
+  } while (p > L);
+
+  return k - 1;
 }
 
 function calcularTCL(muestra, varianza, media) {
@@ -88,28 +114,6 @@ function insertarGraficoTCL(tcl) {
   Plotly.newPlot('tcl', data, layout);
 }
 
-function calcularValorPoisson(lambda) {
-  var L = Math.exp(-lambda);
-  var p = 1.0;
-  var k = 0;
-
-  do {
-    k++;
-    p *= Math.random();
-  } while (p > L);
-
-  return k - 1;
-}
-
-function calcularPoisson(n, lambda) {
-  var muestra = [];
-  for (i = 0; i <= n; i++) {
-    muestra.push(calcularValorPoisson(lambda));
-  }
-  muestra.sort((a, b) => a - b);
-  return muestra;
-}
-
 function insertarGraficoFrecuencias(muestra) {
   var trace = {
     x: muestra,
@@ -118,19 +122,6 @@ function insertarGraficoFrecuencias(muestra) {
 
   var data = [trace];
   Plotly.newPlot('frecuencias', data);
-}
-
-function media(array, id) {
-  var avg = arr.mean(array);
-  if (id === 'media2') document.getElementById(id).innerHTML = "x&#x0304; = " + Math.abs(avg.toFixed(2));
-  else document.getElementById(id).innerHTML = "x&#x0304; = " + avg.toFixed(2);
-  return avg;
-}
-
-function varianza(array, id) {
-  var varianza = arr.variance(array);
-  document.getElementById(id).innerHTML = "S<sup>2</sup>= " + varianza.toFixed(2);
-  return varianza;
 }
 
 function probIntervalo(valor, tipo) {
@@ -148,23 +139,6 @@ function probIntervalo(valor, tipo) {
   var pReal = calcularProbIntervaloReal(parseInt(a), parseInt(b), valor, tipo);
   var error = calcularError(pIntervalo, pReal);
   return true;
-}
-
-function foo(array) {
-  var a = [], b = [], prev;
-
-  for (var i = 0; i < array.length; i++) {
-    if (array[i] !== prev) {
-      a.push(array[i]);
-      b.push(1);
-    } else {
-      b[b.length - 1]++;
-    }
-    prev = array[i];
-  }
-  console.log(a);
-  console.log(b);
-  return [a, b];
 }
 
 function calcularProbIntervalMuestra(a, b, valor) {
@@ -223,52 +197,6 @@ function calcularProbIntervaloReal(a, b, valor, tipo) {
   }
 }
 
-function calcularProbRealPoisson(a, b) {
-  var probabilidad = 0;
-  for (var i = a; i <= b; i++) {
-    var poisson = ((Math.pow(Math.E, -i) * Math.pow(i, lambda))) / fact(lambda);
-    console.log('Poisson ' + i + ' :' + poisson);
-    probabilidad += poisson;
-    console.log('Probabilidad Real ' + i + ':' + probabilidad);
-  }
-  console.log('Probabilidad Final:' + probabilidad);
-  return probabilidad;
-}
-
-function fact(num) {
-  var total = 1;
-  for (i = 1; i <= num; i++) {
-    total = total * i;
-  }
-  return total;
-}
-
-function calcularError(pIntervalo, pReal) {
-  document.getElementById('error').innerHTML = "Error cometido: " + (Math.abs(pIntervalo - pReal).toFixed(4) * 100) + "%";
-}
-
-function calcularProbMuestra(a, b, frecuencias) {
-  var probabilidad = 0;
-  var frec0 = frecuencias[0];
-  console.log('Frecuencias 0: ' + frec0);
-  var frec1 = frecuencias[1];
-  console.log('Frecuencias 0: ' + frec1);
-  var indexa = frec0.indexOf(a);
-  console.log('Indice A: ' + indexa);
-  var indexb = frec0.indexOf(b);
-  console.log('Indice B: ' + indexb);
-
-  if (indexa == indexb) {
-    return frec1[indexa] / muestra.length;
-  }
-
-  for (var i = indexa; i <= indexb; i++) {
-    probabilidad += frec1[i];
-    console.log('Suma Frecuencias: ' + probabilidad);
-  }
-  return probabilidad / muestra.length;
-}
-
 function calcularProbRealBinomial(a, b) {
   var probabilidad = 0;
   for (var i = a; i <= b; i++) {
@@ -282,9 +210,81 @@ function calcularProbRealBinomial(a, b) {
   return probabilidad;
 }
 
+function calcularProbRealPoisson(a, b) {
+  var probabilidad = 0;
+  for (var i = a; i <= b; i++) {
+    var poisson = ((Math.pow(Math.E, -i) * Math.pow(i, lambda))) / fact(lambda);
+    console.log('Poisson ' + i + ' :' + poisson);
+    probabilidad += poisson;
+    console.log('Probabilidad Real ' + i + ':' + probabilidad);
+  }
+  console.log('Probabilidad Final:' + probabilidad);
+  return probabilidad;
+}
+
+function calcularError(pIntervalo, pReal) {
+  document.getElementById('error').innerHTML = "Error cometido: " + (Math.abs(pIntervalo - pReal).toFixed(4) * 100) + "%";
+}
+
+function calcularProbMuestra(a, b, frecuencias) {
+  var probabilidad = 0;
+  var frec0 = frecuencias[0];
+  var frec1 = frecuencias[1];
+  console.log('A: ' + a);
+  console.log('B: ' + b);
+
+  for (var j = 0; j < frec0.length; j++) {
+    console.log('Indice ' + j);
+    if (frec0[j] >= a && frec0[j] <= b) {
+      console.log('Frecuencia: ' + j + ' ' + frec1[j]);
+      probabilidad += frec1[j];
+    }
+  }
+
+  return probabilidad / muestra.length;
+}
+
+function media(array, id) {
+  var avg = arr.mean(array);
+  if (id === 'media2') document.getElementById(id).innerHTML = "x&#x0304; = " + Math.abs(avg.toFixed(2));
+  else document.getElementById(id).innerHTML = "x&#x0304; = " + avg.toFixed(2);
+  return avg;
+}
+
+function varianza(array, id) {
+  var varianza = arr.variance(array);
+  document.getElementById(id).innerHTML = "S<sup>2</sup>= " + varianza.toFixed(2);
+  return varianza;
+}
+
+function foo(array) {
+  var a = [], b = [], prev;
+
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] !== prev) {
+      a.push(array[i]);
+      b.push(1);
+    } else {
+      b[b.length - 1]++;
+    }
+    prev = array[i];
+  }
+  console.log(a);
+  console.log(b);
+  return [a, b];
+}
+
 function numCombinatorio(n, k) {
   var coeff = 1;
   for (var x = n - k + 1; x <= n; x++) coeff *= x;
   for (x = 1; x <= k; x++) coeff /= x;
   return coeff;
+}
+
+function fact(num) {
+  var total = 1;
+  for (i = 1; i <= num; i++) {
+    total = total * i;
+  }
+  return total;
 }
